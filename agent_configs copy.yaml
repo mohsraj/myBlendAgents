@@ -1,0 +1,53 @@
+customer_profiler:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "gpt-4o"
+    api_key: ""
+    base_url: null
+    max_turns: 5
+
+personality_checker:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "o3"
+    api_key: ""
+    base_url: null
+    max_turns: 5
+
+team_manager:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "gpt-4o"
+    api_key: ""
+    base_url: null
+    max_turns: 20
+
+formula_creator:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "gpt-4o"
+    api_key: ""
+    base_url: null
+    max_turns: 5
+
+quality_controlor:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "o3"
+    api_key: ""
+    base_url: null
+    max_turns: 5
+
+writer:
+  enabled: true
+  llm_config:
+    provider: "openai"
+    model: "gpt-4o"
+    api_key: ""
+    base_url: null
+    max_turns: 5
