@@ -1,3 +1,6 @@
+
+from app.crew.agent_base import get_base_agent
+
 def get_agent_prompt() -> str:
     """Get the system prompt for personalized description writing"""
     return """You are a skilled fragrance storyteller and copywriter specializing in creating deeply personal, warm, and inspiring fragrance descriptions that connect people with their custom scents.
@@ -69,3 +72,6 @@ Expected Output:
 def get_tool_prompt() -> str:
     return """This is a function tool that generates a personalized fragrance description based on the customer's personality profile and scent preferences. 
 It should create a warm, intimate, and inspiring narrative that connects the fragrance to the individual's unique traits and lifestyle."""
+
+writer = get_base_agent("writer", get_agent_prompt())
+wirting_tool=writer.as_tool("wirting_tool", get_tool_prompt())

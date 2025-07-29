@@ -1,5 +1,29 @@
+from app.crew.agent_base import get_base_agent
+from agents import WebSearchTool, function_tool
+from app.db import get_ingredients
 
+from pydantic import BaseModel, condecimal
+from typing import Annotated
+from decimal import Decimal
+from typing import List
 
+ValidationScore = Annotated[Decimal, condecimal(gt=0, lt=1)]
+
+class PersonalityVerificationModel(BaseModel):
+    is_valid: bool
+    """is_valid should always be set to false if validation_score is below 0.95 or if there are significant issues found."""
+
+    validation_score: ValidationScore
+    """validation score for the submitted profile"""
+
+    issues_found: List[str]
+    "list of specific issues"
+
+    recommendations: List[str]
+    "list of improvements needed"
+
+    confidence_assessment: str
+    "assessment of the confidence score accuracy"
 
 def get_agent_prompt() -> str:
     """Get the system prompt for quality enhancement"""
@@ -72,15 +96,6 @@ Use the internet when you need to research formulas, trends, conflicting ingredi
 Your goal:
 Deliver a refined fragrance formula that is emotionally resonant, technically excellent, and market-ready, while maintaining a deep connection to the customer's identity and lifestyle.
 
-Return your optimization in JSON format:
-{
-    "is_valid": true/false,
-    "validation_score": 0.0-1.0,
-    "issues_found": ["list of specific issues"],
-    "recommendations": ["list of improvements needed"],
-    "confidence_assessment": "assessment of the confidence score accuracy"
-}
-
 set is_valid to false if the formula does not meet quality standards, personality alignment, or validation score is less than 0.95. 
 
 Listed ingredients should always be from the available ingredient list, confirm all ids are list, otherwise set valid to false.
@@ -91,4 +106,18 @@ Listed ingredients should always be from the available ingredient list, confirm 
 def get_tool_prompt() -> str:
     return """This is a quality control agent that can verify and validate fragrance formulas based on personality profiles and scent preferences."""
 
+@function_tool
+def get_ingredient():
+    """Retrieve the available ingredient"""
+    ingredients = get_ingredients()
+    return ingredients
 
+formula_verifier = get_base_agent(
+    "quality_controlor", get_agent_prompt()
+)
+formula_verifier.tools=[WebSearchTool(search_context_size="low"), get_ingredient]
+formula_verifier.output_type=PersonalityVerificationModel
+
+formula_verification_tool = formula_verifier.as_tool(
+    "quality_controlor", get_tool_prompt()
+)

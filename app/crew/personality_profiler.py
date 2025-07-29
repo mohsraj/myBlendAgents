@@ -1,9 +1,40 @@
-class CustomerProfilingAgent:
+
+from app.crew.agent_base import get_base_agent
+from app.crew.personality_verifier import personality_verification_tool
+from pydantic import BaseModel
+from enum import Enum
+from typing import List
+
+class TraitLevel(str, Enum):
+    high = "high"
+    medium = "medium"
+    low = "low"
+
+class TraitsModel(BaseModel):
+    openness_to_experience: TraitLevel
+    conscientiousness: TraitLevel
+    extraversion: TraitLevel
+    agreeableness: TraitLevel
+    neuroticism: TraitLevel
+    creativity: TraitLevel
+    spontaneity: TraitLevel
+    sophistication: TraitLevel
+    sensuality: TraitLevel
+    confidence: TraitLevel
+
+class LifestylePreferencesModel(BaseModel):
+    social_style: str 
+    work_environment: str
+    leisure_activities: str
+    fashion_style: str
+    living_environment: str
+
+class PersonalityProfileModel(BaseModel):
     mbti_type: str
-    traits: dict
-    lifestyle_preferences: dict
-    scent_preferences: list
-    scent_dislikes: list
+    traits: TraitsModel
+    lifestyle_preferences: LifestylePreferencesModel
+    scent_preferences: List[str]
+    scent_dislikes: List[str]
     confidence_score: float
     analysis_notes: str
 
@@ -81,3 +112,7 @@ Output only the JSON structure without any additional text or explanation.
 def get_tool_prompt() -> str:
     return """This is an expert personality analyst and fragrance consultant specializing in extracting detailed personality profiles from customer questionnaires"""
 
+
+personality_profiler = get_base_agent("customer_profiler", get_agent_prompt())
+personality_profiler.tools=[personality_verification_tool]
+personality_profiler.output_type=PersonalityProfileModel

@@ -3,7 +3,6 @@ from openai import AsyncOpenAI
 import yaml, json, os
 from app.logging_utils import logger
 import asyncio
-from app.test import get_submission
 
 
 def load_config(path: str = "./agent_configs.yaml") -> dict:

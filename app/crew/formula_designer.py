@@ -1,6 +1,45 @@
+from app.crew.agent_base import get_base_agent
+from agents import WebSearchTool, function_tool
+from app.crew.formula_verifier import formula_verification_tool, get_ingredient
 
-from app.db import get_ingredients
-from agents import function_tool
+from pydantic import BaseModel, Field, condecimal
+from typing import List, Literal, Annotated
+from decimal import Decimal
+
+Percentage = Annotated[Decimal, condecimal(gt=0, le=1)]
+ValidationScore = Annotated[Decimal, condecimal(gt=0, lt=1)]
+
+
+# Ingredient model
+class Ingredient(BaseModel):
+    ingredient_id: str
+    ingredient_name: str
+    concentration: Percentage
+
+
+# Formula section model
+class FormulaSection(BaseModel):
+    top: List[Ingredient] = Field(default_factory=list)
+    heart: List[Ingredient] = Field(default_factory=list)
+    base: List[Ingredient] = Field(default_factory=list)
+
+
+# Note structure model
+class NoteStructure(BaseModel):
+    top: Percentage
+    heart: Percentage
+    base: Percentage
+
+
+# Final output model
+class PerfumeOutputModel(BaseModel):
+    predicted_longevity: str
+    predicted_sillage: str
+    personality_alignment_score: ValidationScore
+    scent_description: str
+    reasoning: str
+    formula: List[FormulaSection]
+    note_structure: NoteStructure
 
 
 def get_agent_prompt() -> str:
@@ -77,48 +116,6 @@ Use the internet when you need to research formulas, trends, conflicting ingredi
 
 Goal:
 Create a technically sound, emotionally expressive, and psychologically aligned fragrance formula that is ready for commercial or artisanal deployment, perfectly matching the customer's personality and scent profile.
-Return in JSON format:
-{
-  "predicted_longevity": "duration",
-  "predicted_sillage": "intensity",
-  "personality_alignment_score": "0.0-1.0",
-  "scent_description": "description",
-  "reasoning": "detailed for not taking suggestions into account",
-  "formula": [
-    {
-      "top": [
-        {
-          "ingredient_id": "ID",
-          "ingredient_name": "Name",
-          "concentration": "percentage"
-        }
-      ]
-    },
-    {
-      "heart": [
-        {
-          "ingredient_id": "ID",
-          "ingredient_name": "Name",
-          "concentration": "percentage"
-        }
-      ]
-    },
-    {
-      "base": [
-        {
-          "ingredient_id": "ID",
-          "ingredient_name": "Name",
-          "concentration": "percentage"
-        }
-      ]
-    }
-  ],
-  "note_structure": {
-    "top": "percentage",
-    "heart": "percentage",
-    "base": "percentage"
-  }
-}
 
 """
 
@@ -127,12 +124,10 @@ def get_tool_prompt():
     return """This is a fragrance formula creation agent that can analyze ingredients and create balanced, harmonious fragrance formulas based on personality profiles and scent preferences."""
 
 
-name = "formula_creator"
-
-
-@function_tool
-def get_ingredient():
-    """Retrieve the available ingredient"""
-    ingredients = get_ingredients()
-    return ingredients
-
+formula_designer = get_base_agent("formula_creator", get_agent_prompt())
+formula_designer.tools = [
+    get_ingredient,
+    formula_verification_tool,
+    WebSearchTool(search_context_size="low"),
+]
+formula_designer.output_type = PerfumeOutputModel

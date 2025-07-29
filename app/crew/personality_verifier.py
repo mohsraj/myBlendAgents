@@ -1,4 +1,33 @@
 
+from pydantic import BaseModel, condecimal
+from typing import Annotated
+from decimal import Decimal
+from app.crew.agent_base import get_base_agent
+from typing import Dict, List
+
+ValidationScore = Annotated[Decimal, condecimal(gt=0, lt=1)]
+
+class PersonalityVerificationModel(BaseModel):
+    is_valid: bool
+    """is_valid should always be set to false if validation_score is below 0.95 or if there are significant issues found."""
+
+    validation_score: ValidationScore
+    """validation score for the submitted profile"""
+
+
+    issues_found: List[str]
+    "list of specific issues"
+
+    recommendations: List[str]
+    "list of improvements needed"
+
+    confidence_assessment: str
+    "assessment of the confidence score accuracy"
+
+    suggested_corrections: Dict[str, str]
+    """ "field_name": "suggested_value" """
+
+
 def get_agent_prompt() -> str:
     """Get the system prompt for personality profile validation"""
     return """Role:
@@ -49,7 +78,7 @@ Provide validation results in JSON format:
 {
     "is_valid": true/false,
     "validation_score": 0.0-1.0,
-    "issues_found": ["list of specific issues"],
+    "issues_found": [],
     "recommendations": ["list of improvements needed"],
     "confidence_assessment": "assessment of the confidence score accuracy",
     "suggested_corrections": {
@@ -63,3 +92,7 @@ Be thorough but constructive in your validation."""
 def get_tool_prompt() -> str:
     return """This is a personality expert that can verify and validate personality information extracted from questioniers"""
 
+personality_verifier = get_base_agent("personality_checker", get_agent_prompt())
+personality_verification_tool = personality_verifier.as_tool(
+    "personality_checker", get_tool_prompt()
+)
