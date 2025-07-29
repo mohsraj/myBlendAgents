@@ -33,6 +33,66 @@ from app.crew.writer_agent import (
 )
 
 
+def get_agent_prompt_test() -> str:
+    """Get the system prompt for a manager agent that oversees team operations"""
+    return """Role:
+You are an AI Team Manager responsible for orchestrating the workflow of specialized agents involved in customer profiling. 
+
+Workflow Responsibilities:
+
+You will receive structured customer questionnaire data as input. Based on this data, you must manage the following steps:
+
+Step 1: Personality Extraction
+Use the customer_profiler agent to extract the customer's personality profile from the questionnaire.
+
+Step 2: Personality Verification
+Send the extracted profile to the personality_checker agent for validation. It ALWAYS needs the profile generated from step 1 and the original questionier.
+If the profile is invalid, flagged, or returned with recommendations or issues, send it back to the customer_profiler agent for refinement.
+Repeat this cycle as needed until the personality_checker confirms the profile as valid and complete.
+
+Expected Output Format:
+{
+  "mbti_type": "ENFP",
+  "traits": {
+    "openness_to_experience": 0.87,
+    "conscientiousness": 0.41,
+    "extraversion": 0.79,
+    "agreeableness": 0.65,
+    "neuroticism": 0.34,
+    "creativity": 0.92,
+    "spontaneity": 0.81,
+    "sophistication": 0.73,
+    "sensuality": 0.88,
+    "confidence": 0.67
+  },
+  "lifestyle_preferences": {
+    "social_style": "Energetic and expressive in group settings; thrives on social engagement.",
+    "work_environment": "Prefers flexible, creative environments with minimal micromanagement.",
+    "leisure_activities": "Enjoys travel, live music, spontaneous outings, and artistic hobbies.",
+    "fashion_style": "Eclectic and bold with a preference for statement pieces.",
+    "living_environment": "Urban or semi-urban, colorful and dynamic spaces with personal flair."
+  },
+  "scent_preferences": [
+    "citrus",
+    "white florals",
+    "amber",
+    "gourmand"
+  ],
+  "scent_dislikes": [
+    "oud",
+    "leather",
+    "sharp green"
+  ],
+  "confidence_score": 0.93,
+  "analysis_notes": "MBTI type ENFP aligns with high openness, creativity, and extraversion. Preference for expressive and lively scent families like citrus and florals is consistent with personality traits. Dislike for darker, denser notes reflects emotional sensitivity and aversion to heaviness. Lifestyle preferences reflect spontaneity and energy."
+},
+"Additional": {
+  "fragrance_description": "A warm, intimate description that connects the fragrance to the customer's",
+  "peronality_description": ""
+}
+
+"""
+
 def get_agent_prompt() -> str:
     """Get the system prompt for a manager agent that oversees team operations"""
     return """Role:
@@ -44,70 +104,129 @@ You will receive structured customer questionnaire data as input. Based on this 
 
 Step 1: Personality Extraction
 Use the customer_profiler agent to extract the customer's personality profile from the questionnaire.
+
 Step 2: Personality Verification
-Send the extracted profile to the personality_checker agent for validation.
+Send the extracted profile to the personality_checker agent for validation. It ALWAYS needs the profile generated from step 1 and the original questionier.
 If the profile is invalid, flagged, or returned with recommendations or issues, send it back to the customer_profiler agent for refinement.
 Repeat this cycle as needed until the personality_checker confirms the profile as valid and complete.
+
 Step 3: Get the list of available ingridents that fragrance_generator will use to generate the scent
+
 Step 4: Fragrance Generation
-Once a valid personality profile is confirmed, use the fragrance_generator agent to create a scent formula tailored to that profile.
+Once a valid personality profile is confirmed, use the fragrance_generator agent to create a scent formula tailored to that profile, it needs the list of available ingridents.
+
 Step 5: Quality Control
-Submit the generated fragrance to the quality_controller agent.
+Submit the generated fragrance to the quality_controller agent. It needs the fragrance formula, personality profile, and available ingridents
 If the formula fails quality checks or is returned with issues or suggestions, return to the fragrance_generator agent for adjustments.
 Iterate as necessary until the quality_controller approves the formula.
+
 Step 6: Fragrance Description
-Once the fragrance formula is approved, use the writer agent to generate a personalized fragrance description.
+Once the fragrance formula is approved, use the writer agent to generate a personalized fragrance description. needs the questionaire and the fragrance formula.
+
 Step 7: peronality warm and inspiring description
-Create and ensure the description is warm, intimate, and connects the fragrance to the customer’s personality and lifestyle
+Create and ensure the description is warm, intimate, and connects the fragrance to the customer’s personality and lifestyle. needs the questionaire and the personality profile.
+
 step 8: Final Output
-Compile the final fragrance formula and description into a cohesive output.
+Compile the final fragrance formula and description into a cohesive output. (all listed items in the foumala should be from the available ingridents list)
 
 Expected Output Format:
 {
+  "fragrance": {
+    "predicted_longevity": "duration",
+    "predicted_sillage": "intensity",
+    "personality_alignment_score": "0.0-1.0",
+    "reasoning": "detailed for not taking suggestions into account",
+    "scent_description": "description",
+    "scent_preferences": [
+      "citrus",
+      "white florals",
+      "amber",
+      "gourmand"
+    ],
+    "scent_dislikes": [
+      "oud",
+      "leather",
+      "sharp green"
+    ],
+    "confidence_score": 0.93,
     "fragrance_formula": [
-        "top":{[
-            "ingredient_id":"concentration":"", 
-            "ingredient_id":"concentration":"", 
-            ...]
-        ]},
-        "middle":{[
-            "ingredient_id":"concentration":"", 
-            "ingredient_id":"concentration":"", 
-            ...]
-        ]},
-        "base":{[
-            "ingredient_id":"concentration":"",
-            "ingredient_id":"concentration":"",
-            ...]
-        ]},
-    "fragrance_description": "A warm, intimate description that connects the fragrance to the customer's"
-    "personality_profile":
-    {
+      {
+        "top": [
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          },
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          }
+        ]
+      },
+      {
+        "heart": [
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          },
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          }
+        ]
+      },
+      {
+        "base": [
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          },
+          {
+            "ingredient_id": "",
+            "concentration": ""
+          }
+        ]
+      }
+    ]
+  },
+  "PersonalityProfile": {
     "mbti_type": "ENFP",
     "traits": {
-        "openness_to_experience": 0.87,
-        "conscientiousness": 0.41,
-        "extraversion": 0.79,
-        "agreeableness": 0.65,
-        "neuroticism": 0.34,
-        "creativity": 0.92,
-        "spontaneity": 0.81,
-        "sophistication": 0.73,
-        "sensuality": 0.88,
-        "confidence": 0.67
+      "openness_to_experience": 0.87,
+      "conscientiousness": 0.41,
+      "extraversion": 0.79,
+      "agreeableness": 0.65,
+      "neuroticism": 0.34,
+      "creativity": 0.92,
+      "spontaneity": 0.81,
+      "sophistication": 0.73,
+      "sensuality": 0.88,
+      "confidence": 0.67
     },
     "lifestyle_preferences": {
-        "social_style": "Energetic and expressive in group settings; thrives on social engagement.",
-        "work_environment": "Prefers flexible, creative environments with minimal micromanagement.",
-        "leisure_activities": "Enjoys travel, live music, spontaneous outings, and artistic hobbies.",
-        "fashion_style": "Eclectic and bold with a preference for statement pieces.",
-        "living_environment": "Urban or semi-urban, colorful and dynamic spaces with personal flair."
+      "social_style": "Energetic and expressive in group settings; thrives on social engagement.",
+      "work_environment": "Prefers flexible, creative environments with minimal micromanagement.",
+      "leisure_activities": "Enjoys travel, live music, spontaneous outings, and artistic hobbies.",
+      "fashion_style": "Eclectic and bold with a preference for statement pieces.",
+      "living_environment": "Urban or semi-urban, colorful and dynamic spaces with personal flair."
     },
-    "scent_preferences": ["citrus", "white florals", "amber", "gourmand"],
-    "scent_dislikes": ["oud", "leather", "sharp green"],
+    "scent_preferences": [
+      "citrus",
+      "white florals",
+      "amber",
+      "gourmand"
+    ],
+    "scent_dislikes": [
+      "oud",
+      "leather",
+      "sharp green"
+    ],
     "confidence_score": 0.93,
     "analysis_notes": "MBTI type ENFP aligns with high openness, creativity, and extraversion. Preference for expressive and lively scent families like citrus and florals is consistent with personality traits. Dislike for darker, denser notes reflects emotional sensitivity and aversion to heaviness. Lifestyle preferences reflect spontaneity and energy."
-    }
+  },
+  "Additional": {
+    "fragrance_description": "A warm, intimate description that connects the fragrance to the customer's",
+    "peronality_description": ""
+  }
 }
 
 Key Guidelines:
@@ -161,11 +280,11 @@ if __name__ == "__main__":
     tools = [
         customer_profiler_tool,
         personality_checkertool,
-        formula_creator_tool,
-        quality_controlor_tool,
-        writer_tool,
+        # formula_creator_tool,
+        # quality_controlor_tool,
+        # writer_tool,
     ]
-    team_manager = get_base_agent("team_manager", get_agent_prompt())
+    team_manager = get_base_agent("team_manager", get_agent_prompt_test())
     team_manager.tools = tools
 
     logger.info("starting run")

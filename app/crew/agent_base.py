@@ -51,12 +51,15 @@ def get_base_agent(name, instructions) -> Agent:
     return Agent(name=name, instructions=instructions, model=ai_model)
 
 
-def run_agent(agent, input_data):
+def run_agent(agent, input_data, workflow_name=None):
     """Run the agent with the provided questionnaire data"""
+
+    if not workflow_name:
+        workflow_name = agent
 
     async def run():
         thread_id = "newthread-12345"
-        with trace(workflow_name="Conversation", group_id=thread_id) as span:
+        with trace(workflow_name=workflow_name, group_id=thread_id) as span:
             logger.info(f"trace id: {span.trace_id}")
             result = await Runner.run(
                 starting_agent=agent,
