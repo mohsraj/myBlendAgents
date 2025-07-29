@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from app.logging_utils import logger
 from app.db import get_submission
 from app.crew.agent_base import run_agent
-import uuid, json
+import uuid
 
 
 def generate_scent(submission_id, run_id):
@@ -14,11 +14,11 @@ def generate_scent(submission_id, run_id):
     result, personality, trace_id = run_agent(
         personality_profiler, submission, "Profiler:" + run_id
     )
-    logger.debug(f"Final output: {personality}")
+    logger.debug(f"Final Personality: {personality.model_dump_json(indent=2)}")
 
     messages = {
         "role": "user",
-        "content": json.dumps(personality.model_dump(), indent=2),
+        "content": personality.model_dump_json(indent=2),
     }
 
     from app.crew.formula_designer import formula_designer
@@ -27,7 +27,7 @@ def generate_scent(submission_id, run_id):
     formula_result, formula, trace_id = run_agent(
         formula_designer, messages, "Perfumer:" + run_id
     )
-    logger.debug(f"Final output: {formula}")
+    logger.debug(formula.model_dump_json(indent=2))
 
     from app.crew.writer import writer
 
@@ -35,8 +35,8 @@ def generate_scent(submission_id, run_id):
         "role": "user",
         "content": f"""
 Questionier: {submission}
-Generated formula: {json.dumps(formula.model_dump(), indent=2)}
-Generated personality profile: {json.dumps(personality.model_dump(), indent=2)}
+Generated formula: {formula.model_dump_json(indent=2)}
+Generated personality profile: {personality.model_dump_json(indent=2)}
         """,
     }
     logger.info("starting writer agent")
